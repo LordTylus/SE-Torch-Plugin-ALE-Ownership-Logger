@@ -36,11 +36,11 @@ namespace ALE_Ownership_Logger.Patch {
                 ctx.GetPattern(OnChangeOwnersRequest).Prefixes.Add(patchOnChangeOwnersRequest);
                 ctx.GetPattern(ChangeOwnerRequest).Prefixes.Add(patchChangeOwnerRequest);
 
-                Log.Info("Patched MyCubeGrid!");
+                LogManager.GetCurrentClassLogger().Info("Patched MyCubeGrid!");
 
             } catch (Exception e) {
 
-                Log.Error("Unable to patch MyCubeGrid", e);
+                LogManager.GetCurrentClassLogger().Error("Unable to patch MyCubeGrid", e);
             }
         }
 
@@ -59,7 +59,18 @@ namespace ALE_Ownership_Logger.Patch {
             if (oldOwnerName == newOwnerName)
                 return true;
 
-            Log.Info("Ownership change for block "+block.BlockDefinition.BlockPairName+" from "+oldOwnerName+" to "+newOwnerName+" on grid: "+gridName);
+            bool isOnline = PlayerUtils.isOnline(block.OwnerId);
+            string onlineString = "[Off]";
+            if (isOnline)
+                onlineString = "[On]";
+
+            string oldFactionTag = PlayerUtils.GetFactionTagStringForPlayer(block.OwnerId);
+            string newFactionTag = PlayerUtils.GetFactionTagStringForPlayer(playerId);
+
+            string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
+            string newName = newOwnerName + " " + newFactionTag;
+
+            Log.Info("Ownership change for block "+block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
 
             return true;
         }
@@ -73,6 +84,7 @@ namespace ALE_Ownership_Logger.Patch {
                 return true;
 
             string resquesterName = PlayerUtils.GetPlayerNameById(requestingPlayer);
+            string requestFactionTag = PlayerUtils.GetFactionTagStringForPlayer(requestingPlayer);
 
             /* Dont want to print the grid information over and over again. */
             bool first = true;
@@ -98,15 +110,26 @@ namespace ALE_Ownership_Logger.Patch {
                 if (oldOwnerName == newOwnerName)
                     return true;
 
+                bool isOnline = PlayerUtils.isOnline(block.OwnerId);
+                string onlineString = "[Off]";
+                if (isOnline)
+                    onlineString = "[On]";
+
+                string oldFactionTag = PlayerUtils.GetFactionTagStringForPlayer(block.OwnerId);
+                string newFactionTag = PlayerUtils.GetFactionTagStringForPlayer(request.Owner);
+
+                string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
+                string newName = newOwnerName + " " + newFactionTag;
+
                 /* Opening statement */
                 if (first) {
 
-                    sb.AppendLine("Player " + resquesterName + " requested the following ownership changes on grid: " + gridName);
+                    sb.AppendLine("Player " + resquesterName + " " + requestFactionTag + " requested the following ownership changes on grid: '" + gridName+ "'");
 
                     first = false;
                 }
 
-                sb.AppendLine("   block " + block.BlockDefinition.BlockPairName + " from " + oldOwnerName + " to " + newOwnerName);
+                sb.AppendLine("   block " + block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20));
             }
 
             Log.Info(sb);
