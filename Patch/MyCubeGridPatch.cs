@@ -70,7 +70,22 @@ namespace ALE_Ownership_Logger.Patch {
             string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
             string newName = newOwnerName + " " + newFactionTag;
 
-            Log.Info("Ownership change for block "+block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
+            string causeName = "[Unknown]";
+
+            long causeId = OwnershipLoggerPlugin.Instance.DamageCache.Get(block.EntityId);
+            if (playerId == 0L && causeId != 0L) {
+
+                string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
+                string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+
+                causeName = causePlayerName + " " + causeFactionTag;
+
+            } else if(playerId != 0L) {
+
+                causeName = newName;
+            }
+
+            Log.Info(causeName.PadRight(20) + " changed owner on block " +block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
 
             return true;
         }
