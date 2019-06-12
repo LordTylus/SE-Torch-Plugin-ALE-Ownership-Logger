@@ -92,35 +92,85 @@ namespace ALE_Ownership_Logger {
             if (cubeBlock.EntityId == 0L)
                 return;
 
-            long playerId = getAttacker(info.AttackerId);
-            if (playerId == 0L)
+            ChangingEntity entity = getAttacker(info.AttackerId);
+            if (entity == null)
                 return;
 
-            OwnershipLoggerPlugin.Instance.DamageCache.Store(cubeBlock.EntityId, playerId, TimeSpan.FromSeconds(30));
+            OwnershipLoggerPlugin.Instance.DamageCache.Store(cubeBlock.EntityId, entity, TimeSpan.FromSeconds(30));
         }
 
-        public static long getAttacker(long attackerId) {
+        public static ChangingEntity getAttacker(long attackerId) {
 
             var entity = MyAPIGateway.Entities.GetEntityById(attackerId);
 
             if (entity == null)
-                return 0L;
+                return null;
 
             MyCharacter character = entity as MyCharacter;
-            if(character != null) 
-                return character.GetPlayerIdentityId();
+            if(character != null) {
 
-            MyEngineerToolBase toolbase = entity as MyEngineerToolBase;
-            if (toolbase != null) 
-                return toolbase.OwnerIdentityId;
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = character.GetPlayerIdentityId();
+                changingEntity.Controller = 0L;
+                changingEntity.ChangingCause = ChangingEntity.Cause.Character;
+                return changingEntity;
+            }
 
-            MyCubeBlock block = entity as MyCubeBlock;
-            if (block != null)
-                return block.OwnerId;
+            IMyEngineerToolBase toolbase = entity as IMyEngineerToolBase;
+            if (toolbase != null) {
+
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = toolbase.OwnerIdentityId;
+                changingEntity.Controller = 0L;
+                changingEntity.ChangingCause = ChangingEntity.Cause.CharacterTool;
+                return changingEntity;
+            }
+
+            MyLargeTurretBase turret = entity as MyLargeTurretBase;
+            if (turret != null) {
+
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = turret.OwnerId;
+
+                if (turret.IsPlayerControlled)
+                    changingEntity.Controller = turret.ControllerInfo.ControllingIdentityId;
+                else
+                    changingEntity.Controller = getController(turret.CubeGrid);
+
+                changingEntity.ChangingCause = ChangingEntity.Cause.Turret;
+
+                return changingEntity;
+            }
+
+            MyShipToolBase shipTool = entity as MyShipToolBase;
+            if (shipTool != null) {
+
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = shipTool.OwnerId;
+                changingEntity.Controller = getController(shipTool.CubeGrid);
+                changingEntity.ChangingCause = ChangingEntity.Cause.ShipTool;
+                return changingEntity;
+            }
 
             IMyGunBaseUser gunUser = entity as IMyGunBaseUser;
-            if (gunUser != null)
-                return gunUser.OwnerId;
+            if (gunUser != null) {
+
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = gunUser.OwnerId;
+                changingEntity.Controller = 0L;
+                changingEntity.ChangingCause = ChangingEntity.Cause.CharacterGun;
+                return changingEntity;
+            }
+
+            MyCubeBlock block = entity as MyCubeBlock;
+            if (block != null) {
+
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = block.OwnerId;
+                changingEntity.Controller = getController(block.CubeGrid);
+                changingEntity.ChangingCause = ChangingEntity.Cause.Block;
+                return changingEntity;
+            }
 
             MyCubeGrid grid = entity as MyCubeGrid;
             if (grid != null) {
@@ -134,9 +184,31 @@ namespace ALE_Ownership_Logger {
                 else if (ownerCnt > 1)
                     gridOwner = gridOwnerList[1];
 
-                return gridOwner;
+                ChangingEntity changingEntity = new ChangingEntity();
+                changingEntity.Owner = gridOwner;
+                changingEntity.Controller = getController(grid);
+                changingEntity.ChangingCause = ChangingEntity.Cause.Grid;
+                return changingEntity;
             }
                 
+            return null;
+        }
+
+        private static long getController(MyCubeGrid cubeGrid) {
+
+            var controlSystem = cubeGrid.GridSystems.ControlSystem;
+
+            if (controlSystem.IsControlled) {
+
+                var controller = controlSystem.GetController();
+                if(controller != null) {
+
+                    MyPlayer player = controller.Player;
+                    if (player != null)
+                        return player.Identity.IdentityId;
+                }
+            }
+
             return 0L;
         }
     }

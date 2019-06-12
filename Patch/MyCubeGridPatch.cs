@@ -72,20 +72,34 @@ namespace ALE_Ownership_Logger.Patch {
 
             string causeName = "[Unknown]";
 
-            long causeId = OwnershipLoggerPlugin.Instance.DamageCache.Get(block.EntityId);
-            if (playerId == 0L && causeId != 0L) {
+            ChangingEntity cause = OwnershipLoggerPlugin.Instance.DamageCache.Get(block.EntityId);
+            if (playerId == 0L && cause != null) {
+
+                long causeId;
+
+                if (cause.Controller != 0L)
+                    causeId = cause.Controller;
+                else
+                    causeId = cause.Owner;
+
+                /* Can be offline when weapons are the cause */
+                bool isCauseOnline = PlayerUtils.isOnline(causeId);
+                string causeOnlineString = "[Off]";
+                if (isCauseOnline)
+                    causeOnlineString = "[On]";
 
                 string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
                 string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
 
-                causeName = causePlayerName + " " + causeFactionTag;
+                causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
 
             } else if(playerId != 0L) {
 
-                causeName = newName;
+                /* Must be Online then */
+                causeName = newOwnerName + " [On]" + newFactionTag;
             }
 
-            Log.Info(causeName.PadRight(20) + " changed owner on block " +block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
+            Log.Info(causeName.PadRight(45) + " changed owner on block " +block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
 
             return true;
         }

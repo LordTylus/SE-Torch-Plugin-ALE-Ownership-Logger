@@ -10,11 +10,11 @@ namespace ALE_Ownership_Logger {
 
         private readonly ConcurrentDictionary<long, CacheItem> _cache = new ConcurrentDictionary<long, CacheItem>();
 
-        public void Store(long blockId, long playerId, TimeSpan expiresAfter) {
-            _cache[blockId] = new CacheItem(playerId, expiresAfter);
+        public void Store(long blockId, ChangingEntity entity, TimeSpan expiresAfter) {
+            _cache[blockId] = new CacheItem(entity, expiresAfter);
         }
 
-        public long Get(long key) {
+        public ChangingEntity Get(long key) {
 
             CleanCache();
 
@@ -22,7 +22,7 @@ namespace ALE_Ownership_Logger {
             _cache.TryGetValue(key, out entry);
 
             if (entry == null)
-                return 0L;
+                return null;
 
             return entry.Value;
         }
@@ -46,12 +46,12 @@ namespace ALE_Ownership_Logger {
 
         public class CacheItem {
 
-            public CacheItem(long playerId, TimeSpan expiresAfter) {
-                Value = playerId;
+            public CacheItem(ChangingEntity entity, TimeSpan expiresAfter) {
+                Value = entity;
                 ExpiresAfter = expiresAfter;
             }
 
-            public long Value { get; }
+            public ChangingEntity Value { get; }
             internal DateTimeOffset Created { get; } = DateTimeOffset.Now;
             internal TimeSpan ExpiresAfter { get; }
         }
