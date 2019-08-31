@@ -1,6 +1,7 @@
 ﻿using ALE_Ownership_Logger.Utils;
 using NLog;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -18,6 +19,8 @@ namespace ALE_Ownership_Logger.Patch {
         private static readonly MethodInfo OnChangeOwnersRequest;
         [ReflectedMethodInfo(typeof(MyCubeGrid), "ChangeOwnerRequest")]
         private static readonly MethodInfo ChangeOwnerRequest;
+        [ReflectedMethodInfo(typeof(MyCubeBlock), "OnDestroy")]
+        private static readonly MethodInfo DestroyRequest;
 
         internal static readonly MethodInfo patchOnChangeOwnersRequest =
             typeof(MyCubeGridPatch).GetMethod(nameof(PatchOnChangeOwnersRequest), BindingFlags.Static | BindingFlags.Public) ??
@@ -25,6 +28,10 @@ namespace ALE_Ownership_Logger.Patch {
 
         internal static readonly MethodInfo patchChangeOwnerRequest =
             typeof(MyCubeGridPatch).GetMethod(nameof(PatchChangeOwnerRequest), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo patchOnDestroyRequest =
+            typeof(MyCubeGridPatch).GetMethod(nameof(PatchOnDestroyRequest), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         public static void Patch(PatchContext ctx) {
@@ -35,13 +42,61 @@ namespace ALE_Ownership_Logger.Patch {
 
                 ctx.GetPattern(OnChangeOwnersRequest).Prefixes.Add(patchOnChangeOwnersRequest);
                 ctx.GetPattern(ChangeOwnerRequest).Prefixes.Add(patchChangeOwnerRequest);
+                ctx.GetPattern(DestroyRequest).Prefixes.Add(patchOnDestroyRequest);
 
                 LogManager.GetCurrentClassLogger().Info("Patched MyCubeGrid!");
 
             } catch (Exception e) {
 
-                LogManager.GetCurrentClassLogger().Error("Unable to patch MyCubeGrid", e);
+                LogManager.GetCurrentClassLogger().Error(e, "Unable to patch MyCubeGrid");
             }
+        }
+
+        public static void PatchOnDestroyRequest(MyCubeBlock __instance) {
+
+            MyCubeBlock block = __instance;
+
+            if (block as MyTerminalBlock == null)
+                return;
+
+            MyCubeGrid grid = block.CubeGrid;
+
+            string gridName = grid.DisplayName;
+
+            string oldOwnerName = PlayerUtils.GetPlayerNameById(block.OwnerId);
+
+            bool isOnline = PlayerUtils.isOnline(block.OwnerId);
+            string onlineString = "[Off]";
+            if (isOnline)
+                onlineString = "[On]";
+
+            string oldFactionTag = PlayerUtils.GetFactionTagStringForPlayer(block.OwnerId);
+            string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
+            string causeName = "[Unknown]";
+
+            ChangingEntity cause = OwnershipLoggerPlugin.Instance.DamageCache.Get(block.EntityId);
+            if (cause != null) {
+
+                long causeId;
+
+                if (cause.Controller != 0L)
+                    causeId = cause.Controller;
+                else
+                    causeId = cause.Owner;
+
+                /* Can be offline when weapons are the cause */
+                bool isCauseOnline = PlayerUtils.isOnline(causeId);
+                string causeOnlineString = "[Off]";
+                if (isCauseOnline)
+                    causeOnlineString = "[On]";
+
+                string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
+                string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+
+                causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
+            }
+
+            Log.Info(causeName.PadRight(45) + " destroyed block        " + block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + "    " + "".PadRight(20) + " of grid: " + gridName);
         }
 
         public static bool PatchChangeOwnerRequest(

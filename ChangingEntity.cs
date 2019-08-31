@@ -15,6 +15,7 @@ namespace ALE_Ownership_Logger {
         public Cause ChangingCause { get; set; }
 
         public enum Cause {
+            Warhead,
             Character,
             CharacterTool,
             CharacterGun,
