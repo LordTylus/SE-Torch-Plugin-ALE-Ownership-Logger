@@ -85,68 +85,78 @@ namespace ALE_Ownership_Logger {
 
         private void DamageCheck(object target, ref MyDamageInformation info) {
 
-            MySlimBlock block = target as MySlimBlock;
+            try {
 
-            if (block == null)
-                return;
+                MySlimBlock block = target as MySlimBlock;
 
-            MyCubeBlock cubeBlock = block.FatBlock;
-
-            if (cubeBlock == null)
-                return;
-
-            if (cubeBlock as MyTerminalBlock == null)
-                return;
-
-            if (cubeBlock.EntityId == 0L)
-                return;
-
-            var infoType = info.Type;
-            bool isExplosion = infoType != null && infoType.String == "Explosion";
-
-            Cache DamageCache = OwnershipLoggerPlugin.Instance.DamageCache;
-
-            MyWarhead warhead = cubeBlock as MyWarhead;
-            if (warhead != null && isExplosion) {
-
-                try {
-
-                    bool exploded = (bool)warheadExplodedField.GetValue(warhead);
-
-                    if (exploded) {
-
-                        ChangingEntity changingEntity = new ChangingEntity();
-                        changingEntity.Owner = warhead.OwnerId;
-                        changingEntity.Controller = 0L;
-                        changingEntity.ChangingCause = ChangingEntity.Cause.Warhead;
-
-                        MyCubeGrid grid = warhead.CubeGrid;
-
-                        DamageCache.Store(grid.EntityId, changingEntity, TimeSpan.FromSeconds(3));
-                    }
-
-                } catch (Exception e) {
-                    Log.Error(e, "Warhead Detection failed!");
-                }
-
-            } else {
-
-                ChangingEntity entity = getAttacker(info.AttackerId);
-                if (entity == null)
+                if (block == null)
                     return;
 
-                bool isGrid = entity.ChangingCause == ChangingEntity.Cause.Grid;
+                MyCubeBlock cubeBlock = block.FatBlock;
 
-                if (isGrid && isExplosion) {
+                if (cubeBlock == null)
+                    return;
 
-                    ChangingEntity gridExplisonEntity = DamageCache.Get(info.AttackerId);
+                if (cubeBlock as MyTerminalBlock == null)
+                    return;
 
-                    entity.Owner = gridExplisonEntity.Owner;
-                    entity.Controller = gridExplisonEntity.Controller;
-                    entity.ChangingCause = gridExplisonEntity.ChangingCause;
+                if (cubeBlock.EntityId == 0L)
+                    return;
+
+                var infoType = info.Type;
+                bool isExplosion = infoType != null && infoType.String == "Explosion";
+
+                Cache DamageCache = OwnershipLoggerPlugin.Instance.DamageCache;
+
+                MyWarhead warhead = cubeBlock as MyWarhead;
+                if (warhead != null && isExplosion) {
+
+                    try {
+
+                        bool exploded = (bool)warheadExplodedField.GetValue(warhead);
+
+                        if (exploded) {
+
+                            ChangingEntity changingEntity = new ChangingEntity();
+                            changingEntity.Owner = warhead.OwnerId;
+                            changingEntity.Controller = 0L;
+                            changingEntity.ChangingCause = ChangingEntity.Cause.Warhead;
+
+                            MyCubeGrid grid = warhead.CubeGrid;
+
+                            if(grid != null)
+                                DamageCache.Store(grid.EntityId, changingEntity, TimeSpan.FromSeconds(3));
+                        }
+
+                    } catch (Exception e) {
+                        Log.Error(e, "Warhead Detection failed!");
+                    }
+
+                } else {
+
+                    ChangingEntity entity = getAttacker(info.AttackerId);
+                    if (entity == null)
+                        return;
+
+                    bool isGrid = entity.ChangingCause == ChangingEntity.Cause.Grid;
+
+                    if (isGrid && isExplosion) {
+
+                        ChangingEntity gridExplisonEntity = DamageCache.Get(info.AttackerId);
+
+                        if (gridExplisonEntity != null) {
+
+                            entity.Owner = gridExplisonEntity.Owner;
+                            entity.Controller = gridExplisonEntity.Controller;
+                            entity.ChangingCause = gridExplisonEntity.ChangingCause;
+                        }
+                    }
+
+                    DamageCache.Store(cubeBlock.EntityId, entity, TimeSpan.FromSeconds(30));
                 }
 
-                DamageCache.Store(cubeBlock.EntityId, entity, TimeSpan.FromSeconds(30));
+            } catch(Exception e) {
+                Log.Error(e, "Error on Checking Damage!");
             }
         }
 
