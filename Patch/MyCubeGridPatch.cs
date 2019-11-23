@@ -2,6 +2,8 @@
 using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
+using SpaceEngineers.Game.Entities.Blocks.SafeZone;
+using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -75,7 +77,11 @@ namespace ALE_Ownership_Logger.Patch {
             string causeName = "[Unknown]";
 
             ChangingEntity cause = OwnershipLoggerPlugin.Instance.DamageCache.Get(block.EntityId);
+            string additionalInfo = null;
+
             if (cause != null) {
+
+                additionalInfo = cause.AdditionalInfo;
 
                 long causeId;
 
@@ -96,7 +102,11 @@ namespace ALE_Ownership_Logger.Patch {
                 causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
             }
 
-            Log.Info(causeName.PadRight(45) + " destroyed block        " + block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + "    " + "".PadRight(20) + " of grid: " + gridName);
+            string blockpairName = block.BlockDefinition.BlockPairName;
+
+            blockpairName = ChangeName(additionalInfo, blockpairName);
+
+            Log.Info(causeName.PadRight(45) + " destroyed block        " + blockpairName.PadRight(20) + " from " + oldName.PadRight(25) + "    " + "".PadRight(20) + " of grid: " + gridName);
         }
 
         public static bool PatchChangeOwnerRequest(
@@ -128,7 +138,12 @@ namespace ALE_Ownership_Logger.Patch {
             string causeName = "[Unknown]";
 
             ChangingEntity cause = OwnershipLoggerPlugin.Instance.DamageCache.Get(block.EntityId);
+
+            string additionalInfo = null;
+
             if (playerId == 0L && cause != null) {
+
+                additionalInfo = cause.AdditionalInfo;
 
                 long causeId;
 
@@ -154,9 +169,21 @@ namespace ALE_Ownership_Logger.Patch {
                 causeName = newOwnerName + " [On]" + newFactionTag;
             }
 
-            Log.Info(causeName.PadRight(45) + " changed owner on block " +block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
+            string blockpairName = block.BlockDefinition.BlockPairName;
+
+            blockpairName = ChangeName(additionalInfo, blockpairName);
+
+            Log.Info(causeName.PadRight(45) + " changed owner on block " + blockpairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
 
             return true;
+        }
+
+        private static string ChangeName(string additionalInfo, string blockpairName) {
+
+            if (additionalInfo == null)
+                return blockpairName;
+            
+            return blockpairName+"_"+ additionalInfo;
         }
 
         public static bool PatchOnChangeOwnersRequest(List<MyCubeGrid.MySingleOwnershipRequest> requests, long requestingPlayer) {

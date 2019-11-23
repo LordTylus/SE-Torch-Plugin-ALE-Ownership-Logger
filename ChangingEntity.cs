@@ -12,6 +12,8 @@ namespace ALE_Ownership_Logger {
         public long Owner { get; set; }
         public long Controller { get; set; }
 
+        public string AdditionalInfo { get; set; }
+
         public Cause ChangingCause { get; set; }
 
         public enum Cause {

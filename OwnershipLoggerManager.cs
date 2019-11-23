@@ -9,6 +9,8 @@ using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Weapons;
+using SpaceEngineers.Game.Entities.Blocks.SafeZone;
+using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -86,10 +88,7 @@ namespace ALE_Ownership_Logger {
         private void DamageCheck(object target, ref MyDamageInformation info) {
 
             try {
-
-                MySlimBlock block = target as MySlimBlock;
-
-                if (block == null)
+                if (!(target is MySlimBlock block))
                     return;
 
                 MyCubeBlock cubeBlock = block.FatBlock;
@@ -108,8 +107,7 @@ namespace ALE_Ownership_Logger {
 
                 Cache DamageCache = OwnershipLoggerPlugin.Instance.DamageCache;
 
-                MyWarhead warhead = cubeBlock as MyWarhead;
-                if (warhead != null && isExplosion) {
+                if (cubeBlock is MyWarhead warhead && isExplosion) {
 
                     try {
 
@@ -117,14 +115,15 @@ namespace ALE_Ownership_Logger {
 
                         if (exploded) {
 
-                            ChangingEntity changingEntity = new ChangingEntity();
-                            changingEntity.Owner = warhead.OwnerId;
-                            changingEntity.Controller = 0L;
-                            changingEntity.ChangingCause = ChangingEntity.Cause.Warhead;
+                            ChangingEntity changingEntity = new ChangingEntity {
+                                Owner = warhead.OwnerId,
+                                Controller = 0L,
+                                ChangingCause = ChangingEntity.Cause.Warhead
+                            };
 
                             MyCubeGrid grid = warhead.CubeGrid;
 
-                            if(grid != null)
+                            if (grid != null)
                                 DamageCache.Store(grid.EntityId, changingEntity, TimeSpan.FromSeconds(3));
                         }
 
@@ -134,9 +133,20 @@ namespace ALE_Ownership_Logger {
 
                 } else {
 
-                    ChangingEntity entity = getAttacker(info.AttackerId);
+                    ChangingEntity entity = GetAttacker(info.AttackerId);
                     if (entity == null)
                         return;
+
+                    if (cubeBlock is IMySafeZoneBlock safezone) {
+
+                        var safezoneComponent = safezone.Components.Get<MySafeZoneComponent>();
+
+                        bool enabled = false;
+                        if (safezoneComponent != null)
+                            enabled = safezoneComponent.IsSafeZoneEnabled();
+
+                        entity.AdditionalInfo = enabled ? "on" : "off";
+                    }
 
                     bool isGrid = entity.ChangingCause == ChangingEntity.Cause.Grid;
 
@@ -160,81 +170,80 @@ namespace ALE_Ownership_Logger {
             }
         }
 
-        public ChangingEntity getAttacker(long attackerId) {
+        public ChangingEntity GetAttacker(long attackerId) {
 
             var entity = MyAPIGateway.Entities.GetEntityById(attackerId);
 
             if (entity == null)
                 return null;
 
-            MyCharacter character = entity as MyCharacter;
-            if(character != null) {
+            if (entity is MyCharacter character) {
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = character.GetPlayerIdentityId();
-                changingEntity.Controller = 0L;
-                changingEntity.ChangingCause = ChangingEntity.Cause.Character;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = character.GetPlayerIdentityId(),
+                    Controller = 0L,
+                    ChangingCause = ChangingEntity.Cause.Character
+                };
                 return changingEntity;
             }
 
-            IMyEngineerToolBase toolbase = entity as IMyEngineerToolBase;
-            if (toolbase != null) {
+            if (entity is IMyEngineerToolBase toolbase) {
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = toolbase.OwnerIdentityId;
-                changingEntity.Controller = 0L;
-                changingEntity.ChangingCause = ChangingEntity.Cause.CharacterTool;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = toolbase.OwnerIdentityId,
+                    Controller = 0L,
+                    ChangingCause = ChangingEntity.Cause.CharacterTool
+                };
                 return changingEntity;
             }
 
-            MyLargeTurretBase turret = entity as MyLargeTurretBase;
-            if (turret != null) {
+            if (entity is MyLargeTurretBase turret) {
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = turret.OwnerId;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = turret.OwnerId
+                };
 
                 if (turret.IsPlayerControlled)
                     changingEntity.Controller = turret.ControllerInfo.ControllingIdentityId;
                 else
-                    changingEntity.Controller = getController(turret.CubeGrid);
+                    changingEntity.Controller = GetController(turret.CubeGrid);
 
                 changingEntity.ChangingCause = ChangingEntity.Cause.Turret;
 
                 return changingEntity;
             }
 
-            MyShipToolBase shipTool = entity as MyShipToolBase;
-            if (shipTool != null) {
+            if (entity is MyShipToolBase shipTool) {
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = shipTool.OwnerId;
-                changingEntity.Controller = getController(shipTool.CubeGrid);
-                changingEntity.ChangingCause = ChangingEntity.Cause.ShipTool;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = shipTool.OwnerId,
+                    Controller = GetController(shipTool.CubeGrid),
+                    ChangingCause = ChangingEntity.Cause.ShipTool
+                };
                 return changingEntity;
             }
 
-            IMyGunBaseUser gunUser = entity as IMyGunBaseUser;
-            if (gunUser != null) {
+            if (entity is IMyGunBaseUser gunUser) {
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = gunUser.OwnerId;
-                changingEntity.Controller = 0L;
-                changingEntity.ChangingCause = ChangingEntity.Cause.CharacterGun;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = gunUser.OwnerId,
+                    Controller = 0L,
+                    ChangingCause = ChangingEntity.Cause.CharacterGun
+                };
                 return changingEntity;
             }
 
-            MyCubeBlock block = entity as MyCubeBlock;
-            if (block != null) {
+            if (entity is MyCubeBlock block) {
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = block.OwnerId;
-                changingEntity.Controller = getController(block.CubeGrid);
-                changingEntity.ChangingCause = ChangingEntity.Cause.Block;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = block.OwnerId,
+                    Controller = GetController(block.CubeGrid),
+                    ChangingCause = ChangingEntity.Cause.Block
+                };
                 return changingEntity;
             }
 
-            MyCubeGrid grid = entity as MyCubeGrid;
-            if (grid != null) {
+            if (entity is MyCubeGrid grid) {
 
                 var gridOwnerList = grid.BigOwners;
                 var ownerCnt = gridOwnerList.Count;
@@ -245,10 +254,11 @@ namespace ALE_Ownership_Logger {
                 else if (ownerCnt > 1)
                     gridOwner = gridOwnerList[1];
 
-                ChangingEntity changingEntity = new ChangingEntity();
-                changingEntity.Owner = gridOwner;
-                changingEntity.Controller = getController(grid);
-                changingEntity.ChangingCause = ChangingEntity.Cause.Grid;
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = gridOwner,
+                    Controller = GetController(grid),
+                    ChangingCause = ChangingEntity.Cause.Grid
+                };
 
                 return changingEntity;
             }
@@ -256,7 +266,7 @@ namespace ALE_Ownership_Logger {
             return null;
         }
 
-        private static long getController(MyCubeGrid cubeGrid) {
+        private static long GetController(MyCubeGrid cubeGrid) {
 
             var controlSystem = cubeGrid.GridSystems.ControlSystem;
 
