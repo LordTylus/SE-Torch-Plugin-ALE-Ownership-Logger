@@ -13,7 +13,9 @@ using Torch.Utils;
 using VRage.Game;
 
 namespace ALE_Ownership_Logger.Patch {
-    public class MyCubeGridPatch {
+
+    [PatchShim]
+    public static class MyCubeGridPatch {
 
         public static readonly Logger Log = LogManager.GetLogger("OwnershipLogger");
 
@@ -38,20 +40,11 @@ namespace ALE_Ownership_Logger.Patch {
 
         public static void Patch(PatchContext ctx) {
 
-            ReflectedManager.Process(typeof(MyCubeGridPatch));
+            ctx.GetPattern(OnChangeOwnersRequest).Prefixes.Add(patchOnChangeOwnersRequest);
+            ctx.GetPattern(ChangeOwnerRequest).Prefixes.Add(patchChangeOwnerRequest);
+            ctx.GetPattern(DestroyRequest).Prefixes.Add(patchOnDestroyRequest);
 
-            try {
-
-                ctx.GetPattern(OnChangeOwnersRequest).Prefixes.Add(patchOnChangeOwnersRequest);
-                ctx.GetPattern(ChangeOwnerRequest).Prefixes.Add(patchChangeOwnerRequest);
-                ctx.GetPattern(DestroyRequest).Prefixes.Add(patchOnDestroyRequest);
-
-                LogManager.GetCurrentClassLogger().Info("Patched MyCubeGrid!");
-
-            } catch (Exception e) {
-
-                LogManager.GetCurrentClassLogger().Error(e, "Unable to patch MyCubeGrid");
-            }
+            LogManager.GetCurrentClassLogger().Debug("Patched MyCubeGrid!");
         }
 
         public static void PatchOnDestroyRequest(MyCubeBlock __instance) {
