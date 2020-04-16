@@ -1,9 +1,9 @@
 ﻿using ALE_Ownership_Logger.Utils;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
-using SpaceEngineers.Game.Entities.Blocks.SafeZone;
-using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -37,6 +37,24 @@ namespace ALE_Ownership_Logger.Patch {
         internal static readonly MethodInfo patchOnDestroyRequest =
             typeof(MyCubeGridPatch).GetMethod(nameof(PatchOnDestroyRequest), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
+
+        static MyCubeGridPatch() {
+
+            var logTarget = new FileTarget {
+                FileName = "Logs/ownerships-${shortdate}.log",
+                Layout = "${var:logStamp} ${var:logContent}"
+            };
+
+            LogManager.Configuration.AddTarget("ownerships", logTarget);
+
+            var logRule = new LoggingRule("OwnershipLogger", LogLevel.Debug, logTarget) {
+                Final = true
+            };
+
+            LogManager.Configuration.LoggingRules.Insert(0, logRule);
+
+            LogManager.Configuration.Reload();
+        }
 
         public static void Patch(PatchContext ctx) {
 

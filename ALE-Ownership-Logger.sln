@@ -13,12 +13,9 @@ Global
 		ALE-Core\ALE-Core.projitems*{74365311-2c21-4152-86f8-c44f2418a159}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{74365311-2C21-4152-86F8-C44F2418A159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{74365311-2C21-4152-86F8-C44F2418A159}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74365311-2C21-4152-86F8-C44F2418A159}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74365311-2C21-4152-86F8-C44F2418A159}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
