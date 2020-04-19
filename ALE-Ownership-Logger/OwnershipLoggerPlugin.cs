@@ -1,10 +1,8 @@
 ﻿using ALE_Ownership_Logger.Patch;
-using ALE_Ownership_Logger.Utils;
 using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
-using Sandbox.Game.GameSystems;
 using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
@@ -12,20 +10,20 @@ using Sandbox.ModAPI.Weapons;
 using SpaceEngineers.Game.Entities.Blocks.SafeZone;
 using SpaceEngineers.Game.ModAPI;
 using System;
+using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
+using System.Windows.Controls;
 using Torch;
 using Torch.API;
 using Torch.API.Managers;
+using Torch.API.Plugins;
 using Torch.API.Session;
-using Torch.Managers;
-using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.Game.ModAPI;
 
 namespace ALE_Ownership_Logger
 {
-    public class OwnershipLoggerPlugin : TorchPluginBase {
+    public class OwnershipLoggerPlugin : TorchPluginBase, IWpfPlugin {
 
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static OwnershipLoggerPlugin Instance { get; private set; }
@@ -33,6 +31,12 @@ namespace ALE_Ownership_Logger
         public Cache DamageCache { get; } = new Cache();
         
         private FieldInfo warheadExplodedField = null;
+
+        private UserControl _control;
+        public UserControl GetControl() => _control ?? (_control = new OwnershipControl(this));
+
+        private Persistent<OwnershipConfig> _config;
+        public OwnershipConfig Config => _config?.Data;
 
         public override void Init(ITorchBase torch) {
 
@@ -50,6 +54,35 @@ namespace ALE_Ownership_Logger
                 Log.Error("Unable to load Warhead.isExploded Field. If you are the developer of the plugin. This is the moment you have to fix that!");
 
             Instance = this;
+
+            SetUpConfig();
+            MyCubeGridPatch.ApplyLogging();
+        }
+
+        private void SetUpConfig() {
+
+            var configFile = Path.Combine(StoragePath, "OwnershipLogger.cfg");
+
+            try {
+
+                _config = Persistent<OwnershipConfig>.Load(configFile);
+
+            } catch (Exception e) {
+                Log.Warn(e);
+            }
+
+            if (_config?.Data == null) {
+
+                Log.Info("Create Default Config, because none was found!");
+
+                _config = new Persistent<OwnershipConfig>(configFile, new OwnershipConfig());
+                _config.Save();
+            }
+        }
+
+        public void Save() {
+            _config.Save();
+            MyCubeGridPatch.ApplyLogging();
         }
 
         private void DamageCheck(object target, ref MyDamageInformation info) {

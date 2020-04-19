@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace ALE_Ownership_Logger {
 
-
     public class ChangingEntity {
 
         public long Owner { get; set; }

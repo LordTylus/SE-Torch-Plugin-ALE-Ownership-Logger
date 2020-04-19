@@ -17,7 +17,7 @@ namespace ALE_Ownership_Logger.Patch {
     [PatchShim]
     public static class MyCubeGridPatch {
 
-        public static readonly Logger Log = LogManager.GetLogger("OwnershipLogger");
+        private static readonly Logger Log = LogManager.GetLogger("OwnershipLogger");
 
         [ReflectedMethodInfo(typeof(MyCubeGrid), "OnChangeOwnersRequest")]
         private static readonly MethodInfo OnChangeOwnersRequest;
@@ -38,20 +38,30 @@ namespace ALE_Ownership_Logger.Patch {
             typeof(MyCubeGridPatch).GetMethod(nameof(PatchOnDestroyRequest), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
-        static MyCubeGridPatch() {
+        public static void ApplyLogging() {
+
+            var rules = LogManager.Configuration.LoggingRules;
+
+            for (int i = rules.Count - 1; i >= 0; i--) {
+
+                var rule = rules[i];
+
+                if (rule.LoggerNamePattern == "OwnershipLogger")
+                    rules.RemoveAt(i);
+            }
+
+            var config = OwnershipLoggerPlugin.Instance.Config;
 
             var logTarget = new FileTarget {
-                FileName = "Logs/ownerships-${shortdate}.log",
+                FileName = "Logs/"+config.LoggingFileName,
                 Layout = "${var:logStamp} ${var:logContent}"
             };
-
-            LogManager.Configuration.AddTarget("ownerships", logTarget);
 
             var logRule = new LoggingRule("OwnershipLogger", LogLevel.Debug, logTarget) {
                 Final = true
             };
 
-            LogManager.Configuration.LoggingRules.Insert(0, logRule);
+            rules.Insert(0, logRule);
 
             LogManager.Configuration.Reload();
         }
