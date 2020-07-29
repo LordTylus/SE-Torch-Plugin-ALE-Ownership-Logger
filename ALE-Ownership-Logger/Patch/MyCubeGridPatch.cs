@@ -186,8 +186,14 @@ namespace ALE_Ownership_Logger.Patch {
 
             } else if(playerId != 0L) {
 
+                /* Can be offline when weapons are the cause */
+                bool isCauseOnline = PlayerUtils.isOnline(playerId);
+                string causeOnlineString = "[Off]";
+                if (isCauseOnline)
+                    causeOnlineString = "[On]";
+
                 /* Must be Online then */
-                causeName = newOwnerName + " [On]" + newFactionTag;
+                causeName = newOwnerName + " " + causeOnlineString + newFactionTag;
             }
 
             string blockpairName = block.BlockDefinition.BlockPairName;
