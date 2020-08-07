@@ -11,6 +11,8 @@ namespace ALE_Ownership_Logger {
         public long Owner { get; set; }
         public long Controller { get; set; }
 
+        public bool IsPlanet { get; set; }
+
         public string AdditionalInfo { get; set; }
 
         public Cause ChangingCause { get; set; }
@@ -24,6 +26,8 @@ namespace ALE_Ownership_Logger {
             Turret,
             Block,
             Grid,
+            Deformation,
+            Lightning,
         }
     }
 }

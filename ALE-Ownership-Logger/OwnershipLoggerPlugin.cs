@@ -88,6 +88,7 @@ namespace ALE_Ownership_Logger
         private void DamageCheck(object target, ref MyDamageInformation info) {
 
             try {
+
                 if (!(target is MySlimBlock block))
                     return;
 
@@ -105,7 +106,7 @@ namespace ALE_Ownership_Logger
                 var infoType = info.Type;
                 bool isExplosion = infoType != null && infoType.String == "Explosion";
 
-                Cache DamageCache = OwnershipLoggerPlugin.Instance.DamageCache;
+                Cache DamageCache = Instance.DamageCache;
 
                 if (cubeBlock is MyWarhead warhead && isExplosion) {
 
@@ -134,31 +135,49 @@ namespace ALE_Ownership_Logger
                 } else {
 
                     ChangingEntity entity = GetAttacker(info.AttackerId);
-                    if (entity == null)
-                        return;
+                    
+                    if (entity == null) {
 
-                    if (cubeBlock is IMySafeZoneBlock safezone) {
+                        if (info.IsDeformation) {
 
-                        var safezoneComponent = safezone.Components.Get<MySafeZoneComponent>();
+                            entity = new ChangingEntity {
+                                Owner = 0L,
+                                Controller = 0L,
+                                ChangingCause = ChangingEntity.Cause.Deformation,
+                            };
+                        }
 
-                        bool enabled = false;
-                        if (safezoneComponent != null)
-                            enabled = safezoneComponent.IsSafeZoneEnabled();
+                        if (entity == null)
+                            return;
 
-                        entity.AdditionalInfo = enabled ? "on" : "off";
-                    }
+                    } else {
 
-                    bool isGrid = entity.ChangingCause == ChangingEntity.Cause.Grid;
+                        if (entity.IsPlanet) 
+                            entity.ChangingCause = ChangingEntity.Cause.Lightning;
 
-                    if (isGrid && isExplosion) {
+                        if (cubeBlock is IMySafeZoneBlock safezone) {
 
-                        ChangingEntity gridExplisonEntity = DamageCache.Get(info.AttackerId);
+                            var safezoneComponent = safezone.Components.Get<MySafeZoneComponent>();
 
-                        if (gridExplisonEntity != null) {
+                            bool enabled = false;
+                            if (safezoneComponent != null)
+                                enabled = safezoneComponent.IsSafeZoneEnabled();
 
-                            entity.Owner = gridExplisonEntity.Owner;
-                            entity.Controller = gridExplisonEntity.Controller;
-                            entity.ChangingCause = gridExplisonEntity.ChangingCause;
+                            entity.AdditionalInfo = enabled ? "on" : "off";
+                        }
+
+                        bool isGrid = entity.ChangingCause == ChangingEntity.Cause.Grid;
+
+                        if (isGrid && isExplosion) {
+
+                            ChangingEntity gridExplisonEntity = DamageCache.Get(info.AttackerId);
+
+                            if (gridExplisonEntity != null) {
+
+                                entity.Owner = gridExplisonEntity.Owner;
+                                entity.Controller = gridExplisonEntity.Controller;
+                                entity.ChangingCause = gridExplisonEntity.ChangingCause;
+                            }
                         }
                     }
 
@@ -177,6 +196,17 @@ namespace ALE_Ownership_Logger
             if (entity == null)
                 return null;
 
+            if (entity is MyPlanet) {
+
+                ChangingEntity changingEntity = new ChangingEntity {
+                    Owner = 0L,
+                    Controller = 0L,
+                    IsPlanet = true
+                };
+
+                return changingEntity;
+            }
+
             if (entity is MyCharacter character) {
 
                 ChangingEntity changingEntity = new ChangingEntity {
@@ -184,6 +214,7 @@ namespace ALE_Ownership_Logger
                     Controller = 0L,
                     ChangingCause = ChangingEntity.Cause.Character
                 };
+
                 return changingEntity;
             }
 

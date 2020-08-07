@@ -104,23 +104,30 @@ namespace ALE_Ownership_Logger.Patch {
 
                 additionalInfo = cause.AdditionalInfo;
 
-                long causeId;
+                if (!cause.IsPlanet) {
 
-                if (cause.Controller != 0L)
-                    causeId = cause.Controller;
-                else
-                    causeId = cause.Owner;
+                    long causeId;
 
-                /* Can be offline when weapons are the cause */
-                bool isCauseOnline = PlayerUtils.isOnline(causeId);
-                string causeOnlineString = "[Off]";
-                if (isCauseOnline)
-                    causeOnlineString = "[On]";
+                    if (cause.Controller != 0L)
+                        causeId = cause.Controller;
+                    else
+                        causeId = cause.Owner;
 
-                string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
-                string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+                    /* Can be offline when weapons are the cause */
+                    bool isCauseOnline = PlayerUtils.isOnline(causeId);
+                    string causeOnlineString = "[Off]";
+                    if (isCauseOnline)
+                        causeOnlineString = "[On]";
 
-                causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
+                    string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
+                    string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+
+                    causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
+                
+                } else {
+
+                    causeName = "Planet".PadRight(25) + " with " + cause.ChangingCause;
+                }
             }
 
             string blockpairName = block.BlockDefinition.BlockPairName;
@@ -166,23 +173,30 @@ namespace ALE_Ownership_Logger.Patch {
 
                 additionalInfo = cause.AdditionalInfo;
 
-                long causeId;
+                if(!cause.IsPlanet) {
 
-                if (cause.Controller != 0L)
-                    causeId = cause.Controller;
-                else
-                    causeId = cause.Owner;
+                    long causeId;
 
-                /* Can be offline when weapons are the cause */
-                bool isCauseOnline = PlayerUtils.isOnline(causeId);
-                string causeOnlineString = "[Off]";
-                if (isCauseOnline)
-                    causeOnlineString = "[On]";
+                    if (cause.Controller != 0L)
+                        causeId = cause.Controller;
+                    else
+                        causeId = cause.Owner;
 
-                string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
-                string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+                    /* Can be offline when weapons are the cause */
+                    bool isCauseOnline = PlayerUtils.isOnline(causeId);
+                    string causeOnlineString = "[Off]";
+                    if (isCauseOnline)
+                        causeOnlineString = "[On]";
 
-                causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
+                    string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
+                    string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+
+                    causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
+
+                } else {
+
+                    causeName = "Planet".PadRight(25) + " with " + cause.ChangingCause;
+                }
 
             } else if(playerId != 0L) {
 
