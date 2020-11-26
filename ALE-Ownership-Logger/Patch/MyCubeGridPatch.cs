@@ -134,7 +134,9 @@ namespace ALE_Ownership_Logger.Patch {
 
             blockpairName = ChangeName(additionalInfo, blockpairName);
 
-            Log.Info(causeName.PadRight(45) + " destroyed block        " + blockpairName.PadRight(20) + " from " + oldName.PadRight(25) + "    " + "".PadRight(20) + " of grid: " + gridName);
+            string location = GetLocationWhenNeeded(block);
+
+            Log.Info(causeName.PadRight(45) + " destroyed block        " + blockpairName.PadRight(20) + " from " + oldName.PadRight(25) + "    " + "".PadRight(20) + " of grid: " + gridName + location);
         }
 
         public static bool PatchChangeOwnerRequest(
@@ -214,7 +216,9 @@ namespace ALE_Ownership_Logger.Patch {
 
             blockpairName = ChangeName(additionalInfo, blockpairName);
 
-            Log.Info(causeName.PadRight(45) + " changed owner on block " + blockpairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName);
+            string location = GetLocationWhenNeeded(block);
+
+            Log.Info(causeName.PadRight(45) + " changed owner on block " + blockpairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + " on grid: " + gridName + location);
 
             return true;
         }
@@ -273,6 +277,8 @@ namespace ALE_Ownership_Logger.Patch {
                 string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
                 string newName = newOwnerName + " " + newFactionTag;
 
+                string location = GetLocationWhenNeeded(block);
+
                 /* Opening statement */
                 if (first) {
 
@@ -281,12 +287,24 @@ namespace ALE_Ownership_Logger.Patch {
                     first = false;
                 }
 
-                sb.AppendLine("   block " + block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20));
+                sb.AppendLine("   block " + block.BlockDefinition.BlockPairName.PadRight(20) + " from " + oldName.PadRight(25) + " to " + newName.PadRight(20) + location);
             }
 
             Log.Info(sb);
             
             return true;
+        }
+
+        private static string GetLocationWhenNeeded(MyCubeBlock block) {
+
+            var config = OwnershipLoggerPlugin.Instance.Config;
+
+            if (!config.LogCoords)
+                return "";
+
+            var location = block.PositionComp.GetPosition();
+
+            return $" Location: {location.X.ToString("#,##0.0")}, {location.Y.ToString("#,##0.0")}, {location.Z.ToString("#,##0.0")}";
         }
     }
 }
