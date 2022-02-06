@@ -152,7 +152,7 @@ namespace ALE_Ownership_Logger
 
                     } else {
 
-                        if (entity.IsPlanet) 
+                        if (entity.IsPlanet)
                             entity.ChangingCause = ChangingEntity.Cause.Lightning;
 
                         if (cubeBlock is IMySafeZoneBlock safezone) {
@@ -234,7 +234,7 @@ namespace ALE_Ownership_Logger
                     Owner = turret.OwnerId
                 };
 
-                if (turret.IsPlayerControlled)
+                if (turret.IsControlled)
                     changingEntity.Controller = turret.ControllerInfo.ControllingIdentityId;
                 else
                     changingEntity.Controller = GetController(turret.CubeGrid);

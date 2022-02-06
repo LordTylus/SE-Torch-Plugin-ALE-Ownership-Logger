@@ -7,6 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ALE-Ownership-Logger", "ALE
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ALE-Core", "ALE-Core\ALE-Core.shproj", "{6692DDE3-BD7D-4239-9230-FDD834526DB2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{108B215D-B4B0-47FD-AC6E-BAA9326AA60B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ALE-Core\ALE-Core.projitems*{6692dde3-bd7d-4239-9230-fdd834526db2}*SharedItemsImports = 13
