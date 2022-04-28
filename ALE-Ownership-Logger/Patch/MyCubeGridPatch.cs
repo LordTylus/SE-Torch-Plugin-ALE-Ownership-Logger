@@ -231,7 +231,10 @@ namespace ALE_Ownership_Logger.Patch {
             return blockpairName+"_"+ additionalInfo;
         }
 
-        public static bool PatchOnChangeOwnersRequest(List<MyCubeGrid.MySingleOwnershipRequest> requests, long requestingPlayer) {
+        public static bool PatchOnChangeOwnersRequest(
+            MyOwnershipShareModeEnum shareMode,
+            List<MyCubeGrid.MySingleOwnershipRequest> requests,
+            long requestingPlayer) {
 
             StringBuilder sb = new StringBuilder();
 
