@@ -4,6 +4,7 @@ using NLog.Config;
 using NLog.Targets;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.World;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -11,6 +12,7 @@ using System.Text;
 using Torch.Managers.PatchManager;
 using Torch.Utils;
 using VRage.Game;
+using VRage.Network;
 
 namespace ALE_Ownership_Logger.Patch {
 
@@ -233,8 +235,7 @@ namespace ALE_Ownership_Logger.Patch {
 
         public static bool PatchOnChangeOwnersRequest(
             MyOwnershipShareModeEnum shareMode,
-            List<MyCubeGrid.MySingleOwnershipRequest> requests,
-            long requestingPlayer) {
+            List<MyCubeGrid.MySingleOwnershipRequest> requests) {
 
             StringBuilder sb = new StringBuilder();
 
@@ -242,9 +243,24 @@ namespace ALE_Ownership_Logger.Patch {
             if (requests == null)
                 return true;
 
-            string resquesterName = PlayerUtils.GetPlayerNameById(requestingPlayer);
-            string requestFactionTag = PlayerUtils.GetFactionTagStringForPlayer(requestingPlayer);
+            ulong senderSteamId = MyEventContext.Current.Sender.Value;
 
+            long requestingPlayer = MySession.Static.Players.TryGetIdentityId(senderSteamId);
+
+            string resquesterName;
+            string requestFactionTag;
+            
+            if(requestingPlayer != 0) {
+            
+                resquesterName = PlayerUtils.GetPlayerNameById(requestingPlayer);
+                requestFactionTag = PlayerUtils.GetFactionTagStringForPlayer(requestingPlayer);
+            
+            } else {
+
+                resquesterName = "Unknown Player (ID: "+ senderSteamId+")";
+                requestFactionTag = "";
+            }
+            
             /* Dont want to print the grid information over and over again. */
             bool first = true;
 
