@@ -147,7 +147,6 @@
     <Compile Include="ALE-Ownership-Logger\Patch\MyCubeGridPatch.cs" />
     <Compile Include="ALE-Ownership-Logger\Properties\AssemblyInfo.cs" />
     <Compile Include="ALE-Ownership-Logger\OwnershipLoggerPlugin.cs" />
-    <Compile Include="ALE-Ownership-Logger\Utils\PlayerUtils.cs" />
     <Compile Include="ALE-Ownership-Logger\OwnershipConfig.cs" />
     <Compile Include="ALE-Ownership-Logger\OwnershipControl.xaml.cs">
       <DependentUpon>OwnershipControl.xaml</DependentUpon>
@@ -161,11 +160,11 @@
   </ItemGroup>
   <Import Project="ALE-Core\ALE-Core.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-    <ItemGroup>
-        <Content Include="$(ProjectDir)\manifest.xml" CopyToOutputDirectory="PreserveNewest" />
-    </ItemGroup>
-    <Target Name="Zip" BeforeTargets="AfterBuild">
-        <MakeDir Directories="$(SolutionDir)\Build\" />
-        <ZipDirectory SourceDirectory="$(OutputPath)" DestinationFile="$(SolutionDir)\Build\$(MSBuildProjectName).zip" Overwrite="true" />
-    </Target>
+  <ItemGroup>
+    <Content Include="$(ProjectDir)\manifest.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="Zip" BeforeTargets="AfterBuild">
+    <MakeDir Directories="$(SolutionDir)\Build\" />
+    <ZipDirectory SourceDirectory="$(OutputPath)" DestinationFile="$(SolutionDir)\Build\$(MSBuildProjectName).zip" Overwrite="true" />
+  </Target>
 </Project>

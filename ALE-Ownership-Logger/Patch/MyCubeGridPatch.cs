@@ -1,4 +1,4 @@
-﻿using ALE_Ownership_Logger.Utils;
+﻿using ALE_Core.Utils;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -95,7 +95,7 @@ namespace ALE_Ownership_Logger.Patch {
             if (isOnline)
                 onlineString = "[On]";
 
-            string oldFactionTag = PlayerUtils.GetFactionTagStringForPlayer(block.OwnerId);
+            string oldFactionTag = FactionUtils.GetFactionTagStringForPlayer(block.OwnerId);
             string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
             string causeName = "[Unknown]";
 
@@ -122,7 +122,7 @@ namespace ALE_Ownership_Logger.Patch {
                         causeOnlineString = "[On]";
 
                     string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
-                    string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+                    string causeFactionTag = FactionUtils.GetFactionTagStringForPlayer(causeId);
 
                     causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
                 
@@ -161,8 +161,8 @@ namespace ALE_Ownership_Logger.Patch {
             if (isOnline)
                 onlineString = "[On]";
 
-            string oldFactionTag = PlayerUtils.GetFactionTagStringForPlayer(block.OwnerId);
-            string newFactionTag = PlayerUtils.GetFactionTagStringForPlayer(playerId);
+            string oldFactionTag = FactionUtils.GetFactionTagStringForPlayer(block.OwnerId);
+            string newFactionTag = FactionUtils.GetFactionTagStringForPlayer(playerId);
 
             string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
             string newName = newOwnerName + " " + newFactionTag;
@@ -193,7 +193,7 @@ namespace ALE_Ownership_Logger.Patch {
                         causeOnlineString = "[On]";
 
                     string causePlayerName = PlayerUtils.GetPlayerNameById(causeId);
-                    string causeFactionTag = PlayerUtils.GetFactionTagStringForPlayer(causeId);
+                    string causeFactionTag = FactionUtils.GetFactionTagStringForPlayer(causeId);
 
                     causeName = (causePlayerName + " " + causeOnlineString + causeFactionTag).PadRight(25) + " with " + cause.ChangingCause;
 
@@ -253,7 +253,7 @@ namespace ALE_Ownership_Logger.Patch {
             if(requestingPlayer != 0) {
             
                 resquesterName = PlayerUtils.GetPlayerNameById(requestingPlayer);
-                requestFactionTag = PlayerUtils.GetFactionTagStringForPlayer(requestingPlayer);
+                requestFactionTag = FactionUtils.GetFactionTagStringForPlayer(requestingPlayer);
             
             } else {
 
@@ -290,8 +290,8 @@ namespace ALE_Ownership_Logger.Patch {
                 if (isOnline)
                     onlineString = "[On]";
 
-                string oldFactionTag = PlayerUtils.GetFactionTagStringForPlayer(block.OwnerId);
-                string newFactionTag = PlayerUtils.GetFactionTagStringForPlayer(request.Owner);
+                string oldFactionTag = FactionUtils.GetFactionTagStringForPlayer(block.OwnerId);
+                string newFactionTag = FactionUtils.GetFactionTagStringForPlayer(request.Owner);
 
                 string oldName = oldOwnerName + " " + onlineString + oldFactionTag;
                 string newName = newOwnerName + " " + newFactionTag;
