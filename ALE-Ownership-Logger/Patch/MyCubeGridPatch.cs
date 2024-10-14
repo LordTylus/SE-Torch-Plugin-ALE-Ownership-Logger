@@ -21,7 +21,7 @@ namespace ALE_Ownership_Logger.Patch {
 
         private static readonly Logger Log = LogManager.GetLogger("OwnershipLogger");
 
-        [ReflectedMethodInfo(typeof(MyCubeGrid), "OnChangeOwnersRequest")]
+        [ReflectedMethodInfo(typeof(MyCubeGrid), "AddChangeOwnersRequestServerside")]
         private static readonly MethodInfo OnChangeOwnersRequest;
         [ReflectedMethodInfo(typeof(MyCubeGrid), "ChangeOwnerRequest")]
         private static readonly MethodInfo ChangeOwnerRequest;
