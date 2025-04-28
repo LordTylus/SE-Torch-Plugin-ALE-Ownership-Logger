@@ -8,6 +8,7 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Weapons;
 using SpaceEngineers.Game.Entities.Blocks.SafeZone;
+using SpaceEngineers.Game.EntityComponents.Blocks;
 using SpaceEngineers.Game.ModAPI;
 using System;
 using System.IO;
